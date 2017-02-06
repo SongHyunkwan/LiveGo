@@ -2,6 +2,7 @@ package com.example.songhyunkwan.livego;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -16,8 +17,11 @@ import android.widget.Toast;
 
 import com.firebase.client.Firebase;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -39,7 +43,11 @@ public class MainActivity extends AppCompatActivity {
 
     private DatabaseReference mDatabase;
     private DatabaseReference mDatabase2;
+    private DatabaseReference mDatabaseUsers;
+
     private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthListner;
+
     private ProgressDialog mProgress;
 
     @Override
@@ -48,6 +56,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mAuth = FirebaseAuth.getInstance();
+        mDatabaseUsers = FirebaseDatabase.getInstance().getReference().child("Users");
+        mDatabaseUsers.keepSynced(true);
         mDatabase = FirebaseDatabase.getInstance().getReference().child("State");
         mDatabase2 = FirebaseDatabase.getInstance().getReference().child("Ing");
 
@@ -69,10 +79,21 @@ public class MainActivity extends AppCompatActivity {
         mSendButton = (Button) findViewById(R.id.sendButton);
         mStateButton = (Button) findViewById(R.id.dataState);
 
-        final String [] bCity = {"수지구"};
-        final String [] sCity = {"죽전동","보정동"};
+        mAuthListner = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                if (firebaseAuth.getCurrentUser() == null){
+                    Intent logIntent = new Intent(MainActivity.this, LoginActivity.class);
+                    logIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(logIntent);
+                }
+            }
+        };
+
+        final String [] bCity = {"단국대학교(죽전)"};
+        final String [] sCity = {"정문 앞","꽃매마을"};
         final String [] ageRange = {"20대 초반","20대 중반","20대 후반","30대 초반","30대 중반","30대 후반 이상"};
-        final String [] purpose = {"학교 동기모임","끼리끼리","남녀 미팅","과행사(ex: 종총,개총...)"};
+        final String [] purpose = {"학교 동기모임","끼리끼리","남녀 미팅","단체(교내행사, 개총...)"};
 
         ArrayAdapter adapter1 = new ArrayAdapter(
                 getApplicationContext(), // 현재화면의 제어권자
@@ -203,5 +224,39 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this, "다 입력하세요!!",Toast.LENGTH_LONG);
         }
         mProgress.dismiss();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        //checkUserExist();
+        mAuth.addAuthStateListener(mAuthListner);
+    }
+
+    private void checkUserExist() {
+
+        final String user_id = mAuth.getCurrentUser().getUid();
+
+        mDatabaseUsers.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                if (!dataSnapshot.hasChild(user_id)){
+
+                    Intent maIntent = new Intent(MainActivity.this, LoginActivity.class);
+                    maIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(maIntent);
+
+
+                }
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
     }
 }
