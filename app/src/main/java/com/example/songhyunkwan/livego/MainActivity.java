@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -205,23 +206,29 @@ public class MainActivity extends AppCompatActivity {
 
         mProgress.setMessage("예약 중...");
         mProgress.show();
-        if (!TextUtils.isEmpty(Area1) && !TextUtils.isEmpty(Area2) &&!TextUtils.isEmpty(Age) &&!TextUtils.isEmpty(Goal) && !TextUtils.isEmpty(Store) &&!TextUtils.isEmpty(Count)) {
+        if (!TextUtils.isEmpty(Store) &&!TextUtils.isEmpty(Count)) {
+            if (Integer.parseInt(Count) >= 4) {
+                String user_id = mAuth.getCurrentUser().getUid();
+                DatabaseReference databaseReference = mDatabase.child(user_id);
+                DatabaseReference databaseReference2 = mDatabase2.child(user_id);
 
-            String user_id = mAuth.getCurrentUser().getUid();
-            DatabaseReference databaseReference = mDatabase.child(user_id);
-            DatabaseReference databaseReference2 = mDatabase2.child(user_id);
+                databaseReference.child("지역").setValue(Area1);
+                databaseReference.child("세부지역").setValue(Area2);
+                databaseReference.child("연령층").setValue(Age);
+                databaseReference.child("목적").setValue(Goal);
+                databaseReference.child("상점이름").setValue(Store);
+                databaseReference.child("인원 수").setValue(Count);
 
-            databaseReference.child("지역").setValue(Area1);
-            databaseReference.child("세부지역").setValue(Area2);
-            databaseReference.child("연령층").setValue(Age);
-            databaseReference.child("목적").setValue(Goal);
-            databaseReference.child("상점이름").setValue(Store);
-            databaseReference.child("인원 수").setValue(Count);
-
-            databaseReference2.child("상태").setValue("예약");
-
+                databaseReference2.child("상태").setValue("예약");
+                Log.v("TOSS","예약완료");
+                Toast.makeText(MainActivity.this, "예약 완료!!",Toast.LENGTH_LONG).show();
+            }else {
+                Log.v("TOSS","인원수 늘려");
+                Toast.makeText(MainActivity.this, "인원수는 4명 이상이여야 합니다",Toast.LENGTH_LONG).show();
+            }
         }else{
-            Toast.makeText(MainActivity.this, "다 입력하세요!!",Toast.LENGTH_LONG);
+            Log.v("TOSS","입력 다 안됨");
+            Toast.makeText(MainActivity.this, "다 입력하세요!!",Toast.LENGTH_LONG).show();
         }
         mProgress.dismiss();
     }

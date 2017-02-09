@@ -38,18 +38,25 @@ public class StateActivity extends AppCompatActivity {
         mDatabase = FirebaseDatabase.getInstance().getReference().child("Ing");
         mAuth = FirebaseAuth.getInstance();
         final String userId = mAuth.getCurrentUser().getUid();
+        Log.v("E_VALUE", "에러시점");
         mRef.child(userId).addValueEventListener(new com.firebase.client.ValueEventListener() {
             @Override
             public void onDataChange(com.firebase.client.DataSnapshot dataSnapshot) {
-                Map<String, String> map = dataSnapshot.getValue(Map.class);
-                String tt = map.get("상태");
-                Log.v("E_VALUE", "ㅆ" + tt);
-                mStateText.setText("현재 상태 : "+ tt);
+                Log.v("E_VALUE", "dataSnapshot.getValue() = " + dataSnapshot.getValue());
+                if (dataSnapshot.getValue() != null) {
+                    Map<String, String> map = dataSnapshot.getValue(Map.class);
+                    String tt = map.get("상태");
+                    Log.v("E_VALUE", "ㅆ" + tt);
+                    mStateText.setText("현재 상태 : " + tt);
+                }else{
+                    mStateText.setText("현재 상태 : 예약현황이 없습니다" );
+                }
+
             }
 
             @Override
             public void onCancelled(FirebaseError firebaseError) {
-
+                Log.v("E_VALUE", "firebaseError" + firebaseError);
             }
         });
     }

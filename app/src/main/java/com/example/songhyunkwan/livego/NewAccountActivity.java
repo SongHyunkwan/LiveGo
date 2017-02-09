@@ -70,6 +70,8 @@ public class NewAccountActivity extends AppCompatActivity {
         Log.v("test","password.length() = " + password.length());
         if (!TextUtils.isEmpty(email) && !TextUtils.isEmpty(password) &&!TextUtils.isEmpty(passwordCheck)) {
 
+            checkEmailExist(email);
+
             if (TextUtils.equals(password,passwordCheck) && password.length() > 5 && password.length() < 21) {
 
                 mProgress.setMessage("계정 생성 중...");
@@ -91,11 +93,14 @@ public class NewAccountActivity extends AppCompatActivity {
                             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                             startActivity(intent);
 
+                        }else {
+                            Log.v("task","task = " + task);
+
                         }
 
                     }
                 });
-
+                Toast.makeText(this, "회원가입 완료",Toast.LENGTH_LONG);
                 mProgress.dismiss();
                 //Toast.makeText(this, "계정 생성 완료 생성됨", Toast.LENGTH_LONG).show();
 
@@ -125,6 +130,37 @@ public class NewAccountActivity extends AppCompatActivity {
 
             }
         }
+    }
+
+    private void checkEmailExist(String email) {
+
+        mAuth.fetchProvidersForEmail(email).addOnCompleteListener(new OnCompleteListener<ProviderQueryResult>() {
+            @Override
+            public void onComplete(@NonNull Task<ProviderQueryResult> task) {
+                if(task.isSuccessful()){
+                    ///////// getProviders() will return size 1. if email ID is available.
+                    //Log.v("TASK","TAST = "+task.getResult().getProviders().size());
+                    if (task.getResult().getProviders().size() == 0){   //이메일 중복 X => 사용가능
+
+                        EmailCheckSucess();
+
+                    }else {                                             //이메일 중복 O => 사용불가
+
+                        EmailCheckFail();
+
+                    }
+
+                }
+            }
+        });
+
+    }
+    private void EmailCheckSucess() {   //이메일 사용 가능
+
+    }
+
+    private void EmailCheckFail() {     //이메일 사용 불가
+        Toast.makeText(this,"등록되있는 Email입니다",Toast.LENGTH_LONG).show();
     }
 
 }
